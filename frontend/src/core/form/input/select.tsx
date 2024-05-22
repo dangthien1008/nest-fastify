@@ -17,13 +17,13 @@ const Component = ({
   list,
   mode,
   firstLoad,
-  className = '',
+  ...prop
 }: Type) => {
-  const [_temp, set_temp] = useState({ current: [], list: list || [] });
+  const [_list, set_list] = useState(list ? list : []);
   const facade = get?.facade() || {};
   let __list = !get
-    ? _temp.list
-    : (get?.key ? facade[get?.key] : facade.result.data)
+    ? _list
+    : facade[get?.key || 'result']
         ?.map((e: any) => (get.format ? get.format(e) : e))
         .filter((item: any) => !!item.value);
   const loadData = async (fullTextSearch: string) => {
@@ -32,20 +32,15 @@ const Component = ({
       const params = cleanObjectKeyNull(
         get.params ? get.params(fullTextSearch, form?.getFieldValue) : { fullTextSearch },
       );
-      if (
-        !(get?.key ? facade[get?.key] : facade.result.data) ||
-        new Date().getTime() > time ||
-        JSON.stringify(params) != queryParams
-      )
+      if (!facade[get.key || 'result'] || new Date().getTime() > time || JSON.stringify(params) != queryParams)
         facade[get.method || 'get'](params);
     } else if (list) {
-      set_temp((pre) => ({
-        ...pre,
-        list: list.filter(
+      set_list(
+        list.filter(
           (item: any) =>
             !item?.label?.toUpperCase || item?.label?.toUpperCase().indexOf(fullTextSearch.toUpperCase()) > -1,
         ),
-      }));
+      );
     }
   };
   useEffect(() => {
@@ -54,17 +49,18 @@ const Component = ({
     }
   }, []);
 
+  const [_temp, set_temp] = useState([]);
   useEffect(() => {
     if (get?.data) {
       let data = get.data();
       if (get?.format && data) {
-        data = mode === 'multiple' ? data.map(get.format) : [get.format(data)];
-        if (JSON.stringify(data) !== JSON.stringify(_temp.current)) set_temp((pre) => ({ ...pre, current: data }));
+        if (mode === 'multiple') data = data.map(get.format);
+        else data = [get.format(data)];
+        if (JSON.stringify(data) !== JSON.stringify(_temp)) set_temp(data);
       }
     }
   }, [get?.data]);
-  if (_temp.current.length)
-    __list = __list?.length ? arrayUnique([..._temp.current, ...__list], 'value') : _temp.current;
+  if (_temp) __list = __list?.length ? arrayUnique([..._temp, ...__list], 'value') : _temp;
 
   return (
     <Select
@@ -85,7 +81,7 @@ const Component = ({
       onBlur={onBlur}
       // onSelect={(value) => formItem?.onSelect && formItem?.onSelect(value, form)}
       onDropdownVisibleChange={(open) => open && !!facade?.isLoading && loadData('')}
-      className={className}
+      {...prop}
     >
       {__list?.map((item: any, index: number) => (
         <Select.Option key={`${item.value}${index}`} value={item.value} disabled={item.disabled}>
@@ -103,7 +99,6 @@ type Type = {
   onChange: (e: any) => any;
   onBlur?: (e: any) => any;
   placeholder?: string;
-  className?: string;
   disabled?: boolean;
   get?: TableGet;
   list?: TableItemFilterList[];

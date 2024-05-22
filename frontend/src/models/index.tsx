@@ -23,16 +23,3 @@ export enum EStatusState {
   deleteFulfilled = 'delete.fulfilled',
   deleteRejected = 'delete.rejected',
 }
-
-export enum ETypeChart {
-  pie = 'pie',
-  ring = 'ring',
-  bubble = 'bubble',
-  line = 'line',
-  bar = 'bar',
-  stackedBar = 'stacked-bar',
-  lineBar = 'line-bar',
-  area = 'area',
-  stackedArea = 'stacked-area',
-  scatter = 'scatter',
-}

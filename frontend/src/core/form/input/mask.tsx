@@ -22,7 +22,7 @@ const Component = forwardRef(
       onChange,
       onPressEnter,
       list,
-      autoFocus = false,
+      ...prop
     }: Type,
     ref: Ref<{ input: HTMLInputElement }>,
   ) => {
@@ -85,7 +85,6 @@ const Component = forwardRef(
               },
               className,
             )}
-            autoFocus={autoFocus}
             readOnly={disabled}
             defaultValue={value}
             maxLength={maxLength}
@@ -94,6 +93,7 @@ const Component = forwardRef(
             onChange={onChange}
             onFocus={onFocus}
             onKeyUp={(e) => e.keyCode === 13 && onPressEnter && onPressEnter(e)}
+            {...prop}
           />
           {!!addonAfter && <div>{addonAfter(form)}</div>}
         </div>
@@ -141,6 +141,5 @@ type Type = {
   onChange?: (e: any) => any;
   onPressEnter?: (e: any) => any;
   list?: TableItemFilterList[];
-  autoFocus?: boolean;
 };
 export default Component;

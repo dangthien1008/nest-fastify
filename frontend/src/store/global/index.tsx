@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import viVN from 'antd/lib/locale/vi_VN';
 import enUS from 'antd/lib/locale/en_US';
 import dayjs from 'dayjs';
@@ -133,7 +133,7 @@ export const globalSlice = createSlice({
   name: action.name,
   initialState,
   reducers: {
-    setLanguage: (state, action) => {
+    setLanguage: (state: State, action: PayloadAction<string>) => {
       if (action.payload !== state.language) {
         const { language, formatDate, locale } = checkLanguage(action.payload);
         i18n.changeLanguage(language);
@@ -148,7 +148,7 @@ export const globalSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(action.set.fulfilled, (state, action) => {
+      .addCase(action.set.fulfilled, (state, action: PayloadAction<State>) => {
         let key: keyof State;
         for (key in action.payload) {
           state[key] = action.payload[key];
@@ -168,7 +168,11 @@ export const globalSlice = createSlice({
         state.status = EStatusGlobal.logoutFulfilled;
       })
 
-      .addCase(action.profile.fulfilled, (state, action) => {
+      .addCase(action.profile.pending, (state: State) => {
+        state.isLoading = true;
+        state.status = EStatusGlobal.profilePending;
+      })
+      .addCase(action.profile.fulfilled, (state: State, action: PayloadAction<User>) => {
         if (action.payload) {
           state.user = action.payload;
           state.data = action.payload;
@@ -177,17 +181,17 @@ export const globalSlice = createSlice({
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.profile.rejected, (state) => {
+      .addCase(action.profile.rejected, (state: State) => {
         state.status = EStatusGlobal.profileRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.putProfile.pending, (state, action) => {
+      .addCase(action.putProfile.pending, (state: State, action) => {
         state.data = { ...state.data, ...action.meta.arg };
         state.isLoading = true;
         state.status = EStatusGlobal.putProfilePending;
       })
-      .addCase(action.putProfile.fulfilled, (state, action) => {
+      .addCase(action.putProfile.fulfilled, (state: State, action: PayloadAction<User>) => {
         if (action.payload) {
           localStorage.setItem(keyUser, JSON.stringify(action.payload));
           state.user = action.payload;
@@ -195,17 +199,27 @@ export const globalSlice = createSlice({
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.putProfile.rejected, (state) => {
+      .addCase(action.putProfile.rejected, (state: State) => {
         state.status = EStatusGlobal.putProfileRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.login.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.loginPending;
-      })
-      .addCase(action.login.fulfilled, (state, action) => {
+      .addCase(
+        action.login.pending,
+        (
+          state: State,
+          action: PayloadAction<
+            undefined,
+            string,
+            { arg: { password?: string; email?: string }; requestId: string; requestStatus: 'pending' }
+          >,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.loginPending;
+        },
+      )
+      .addCase(action.login.fulfilled, (state: State, action: PayloadAction<User>) => {
         if (action.payload) {
           localStorage.setItem(keyUser, JSON.stringify(action.payload));
           state.user = action.payload;
@@ -214,56 +228,82 @@ export const globalSlice = createSlice({
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.login.rejected, (state) => {
+      .addCase(action.login.rejected, (state: State) => {
         state.status = EStatusGlobal.loginRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.forgottenPassword.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.forgottenPasswordPending;
-      })
-      .addCase(action.forgottenPassword.fulfilled, (state, action) => {
+      .addCase(
+        action.forgottenPassword.pending,
+        (
+          state: State,
+          action: PayloadAction<
+            undefined,
+            string,
+            { arg: { email?: string }; requestId: string; requestStatus: 'pending' }
+          >,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.forgottenPasswordPending;
+        },
+      )
+      .addCase(action.forgottenPassword.fulfilled, (state: State, action: PayloadAction<boolean>) => {
         if (action.payload) {
           state.status = EStatusGlobal.forgottenPasswordFulfilled;
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.forgottenPassword.rejected, (state) => {
+      .addCase(action.forgottenPassword.rejected, (state: State) => {
         state.status = EStatusGlobal.forgottenPasswordRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.otpConfirmation.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.otpConfirmationPending;
-      })
-      .addCase(action.otpConfirmation.fulfilled, (state, action) => {
+      .addCase(
+        action.otpConfirmation.pending,
+        (
+          state: State,
+          action: PayloadAction<
+            undefined,
+            string,
+            { arg: { email?: string; otp?: string }; requestId: string; requestStatus: 'pending' }
+          >,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.otpConfirmationPending;
+        },
+      )
+      .addCase(action.otpConfirmation.fulfilled, (state: State, action: PayloadAction<boolean>) => {
         if (action.payload) {
           state.status = EStatusGlobal.otpConfirmationFulfilled;
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.otpConfirmation.rejected, (state) => {
+      .addCase(action.otpConfirmation.rejected, (state: State) => {
         state.status = EStatusGlobal.otpConfirmationRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.resetPassword.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.resetPasswordPending;
-      })
-      .addCase(action.resetPassword.fulfilled, (state, action) => {
+      .addCase(
+        action.resetPassword.pending,
+        (
+          state: State,
+          action: PayloadAction<undefined, string, { arg: ResetPassword; requestId: string; requestStatus: 'pending' }>,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.resetPasswordPending;
+        },
+      )
+      .addCase(action.resetPassword.fulfilled, (state: State, action: PayloadAction<boolean>) => {
         if (action.payload) {
           state.data = {};
           state.status = EStatusGlobal.resetPasswordFulfilled;
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.resetPassword.rejected, (state) => {
+      .addCase(action.resetPassword.rejected, (state: State) => {
         state.status = EStatusGlobal.resetPasswordRejected;
         state.isLoading = false;
       });

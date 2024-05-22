@@ -14,3 +14,10 @@ export * from './module/user/repository/address-province.repository';
 export * from './module/user/repository/address-ward.repository';
 export * from './module/user/repository/user.repository';
 export * from './module/user/repository/user-role.repository';
+
+export * from './module/product/repository/product-category.repository';
+export * from './module/product/repository/product.repository';
+export * from './module/product/repository/product-store.repository';
+export * from './module/product/repository/order.repository';
+export * from './module/product/repository/order-address.repository';
+export * from './module/product/repository/order-product.repository';
