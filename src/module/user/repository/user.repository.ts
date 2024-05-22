@@ -93,4 +93,24 @@ export class UserRepository extends BaseRepository<User> {
       .leftJoinAndSelect('base.position', 'position')
       .getOne();
   }
+
+  /**
+   *
+   * @returns User
+   *
+   * @param managerId
+   */
+  async getCountByManagerId(managerId: string): Promise<number> {
+    return await this.createQueryBuilder('base').andWhere(`base.managerId = :managerId`, { managerId }).getCount();
+  }
+
+  /**
+   *
+   * @returns User
+   *
+   * @param ids
+   */
+  async getManyByArrayId(ids: string[]): Promise<User[]> {
+    return await this.createQueryBuilder('base').where(`base.id IN (:...ids)`, { ids }).withDeleted().getMany();
+  }
 }

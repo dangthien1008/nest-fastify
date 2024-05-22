@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
+import { Select } from 'antd';
 import classNames from 'classnames';
 import { Arrow, DoubleArrow } from '@svgs';
-import { Select } from '@core/form/input';
 
 export const Pagination: any = ({
   total = 4,
@@ -10,6 +10,7 @@ export const Pagination: any = ({
   page = 1,
   queryParams = () => null,
   pageSizeRender = (sizePage: number) => sizePage + ' / page',
+  pageSizeWidth = '115px',
   paginationDescription = (from: number, to: number, total: number) => from + '-' + to + ' of ' + total + ' items',
   idElement = 'pagination',
   className = 'pagination',
@@ -21,14 +22,12 @@ export const Pagination: any = ({
   showTotal = true,
 }: Type) => {
   const listOfPageItem = useRef<{ disabled: boolean; type: string; index: number }[]>([]);
-  const [_temp, set_temp] = useState<{ ranges: [number, number] }>({
-    ranges: [(page - 1) * perPage + 1, Math.min(page * perPage, total)],
-  });
-  const lastNumber = useRef(0);
+  const [ranges, setRanges] = useState<[number, number]>([(page - 1) * perPage + 1, Math.min(page * perPage, total)]);
+  const [lastNumber, set_lastNumber] = useState(0);
   const buildIndexes = useCallback(() => {
     const lastIndex = getLastIndex(total, perPage);
     listOfPageItem.current = getListOfPageItem(page, lastIndex);
-    set_temp((pre) => ({ ...pre, ranges: [(page - 1) * perPage + 1, Math.min(page * perPage, total)] }));
+    setRanges([(page - 1) * perPage + 1, Math.min(page * perPage, total)]);
   }, [page, perPage, total]);
 
   useEffect(() => {
@@ -50,13 +49,13 @@ export const Pagination: any = ({
         index = page - 1;
         break;
       case 'prev_10':
-        index = firstPage({ page, lastIndex: lastNumber.current });
+        index = firstPage({ page, lastIndex: lastNumber });
         break;
       case 'next':
         index = page + 1;
         break;
       case 'next_10':
-        index = lastPage({ page, lastIndex: lastNumber.current });
+        index = lastPage({ page, lastIndex: lastNumber });
         break;
       default:
     }
@@ -85,7 +84,7 @@ export const Pagination: any = ({
         index: -1,
         disabled: lastPageDisabled({ page, lastIndex }),
       };
-      lastNumber.current = listOfPage.length;
+      set_lastNumber(listOfPage.length);
       return [prev10Item, prevItem, ...listOfPage, nextItem, next10Item];
     };
     const generatePage = (start: number, end: number) => {
@@ -135,23 +134,29 @@ export const Pagination: any = ({
       <div className={classNames(className, 'flex flex-col lg:flex-row items-center justify-between mt-3 select-none')}>
         <div className={'left relative flex items-center'}>
           <label htmlFor={idElement + '_page_size'}>
-            {showSizeChanger && pageSizeOptions.length > 0 && (
+            {showSizeChanger && (
               <Select
                 className={'w-full sm:w-auto'}
-                value={perPage}
+                id={idElement + '_page_size'}
+                defaultValue={perPage}
+                style={{ minWidth: pageSizeWidth }}
                 onChange={(value) => onPageSizeChange(value)}
-                list={pageSizeOptions.map((item: number) => ({ value: item, label: pageSizeRender(item) }))}
-              />
+              >
+                {pageSizeOptions.map((item: any, index: number) => (
+                  <Select.Option key={index} value={item}>
+                    {pageSizeRender(item)}
+                  </Select.Option>
+                ))}
+              </Select>
             )}
           </label>
           {showTotal && (
-            <span className="sm:ml-3 text-black my-3">
-              {paginationDescription(_temp.ranges[0], _temp.ranges[1], total)}
-            </span>
+            <span className="sm:ml-3 text-black my-3">{paginationDescription(ranges[0], ranges[1], total)}</span>
           )}
         </div>
         <div className="mt-3 sm:mt-0 right flex justify-center p-1 rounded-xl bg-white">
           <div className="flex sm:flex-wrap justify-center duration-300 transition-all">
+            {/* { disabled: boolean; type: string; index: number;   } */}
             {listOfPageItem.current.map((item: any, index: number) => (
               <button
                 type={'button'}
@@ -189,6 +194,7 @@ type Type = {
   page: number;
   queryParams: ({ perPage, page }: { perPage: number; page: number }) => void;
   pageSizeRender: (sizePage: number) => string;
+  pageSizeWidth: string;
   paginationDescription: (from: number, to: number, total: number) => string;
   idElement: string;
   className: string;

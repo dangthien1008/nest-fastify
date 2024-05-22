@@ -49,10 +49,11 @@ export const ModalForm = forwardRef(
             .validateFields()
             .then(async (values) => {
               values = convertFormValue(columns, values);
-              if (facade[keyData]?.id) facade[keyPut]({ ...values, id: facade[keyData].id });
+              if (facade[keyData]?.id) facade[keyPut]({ ...values, id: facade[keyData]?.id});
               else facade[keyPost]({ ...values });
               return true;
             })
+            
             .catch(() => false);
         }}
       >

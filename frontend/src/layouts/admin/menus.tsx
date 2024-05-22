@@ -3,18 +3,34 @@ import { URLSearchParamsInit } from 'react-router-dom/dist/dom';
 
 import { keyRole } from '@utils';
 import './index.less';
-import { Calendar, Cog, User } from '@svgs';
+import { Cog, User, Coffee, Booking, Eye } from '@svgs';
 
 const Layout: IMenu[] = [
-  {
-    icon: <Calendar className="h-6 w-6" />,
-    name: 'Dashboard',
-  },
   {
     icon: <User className="h-6 w-6" />,
     name: 'User',
     permission: keyRole.P_USER_LISTED,
     queryParams: { filter: '{"roleCode":"super_admin"}' },
+  },
+  {
+    icon: <Coffee className="h-8 w-8" />,
+    name: 'DayOff',
+    permission: keyRole.P_DAYOFF_LISTED,
+  },
+  {
+    icon: <Booking className="h-8 w-8" />,
+    name: 'Booking',
+    permission: keyRole.P_BOOKING_LISTED,
+  },
+  {
+    icon: <Booking className="h-8 w-8" />,
+    name: 'TimeSheet',
+    permission: keyRole.P_TASKTIMESHEET_LISTED,
+  },
+  {
+    icon: <Eye className="h-8 w-8" />,
+    name: 'Task',
+    permission: keyRole.P_TASK_LISTED,
   },
   {
     icon: <Cog className="h-6 w-6" />,
@@ -39,6 +55,15 @@ const Layout: IMenu[] = [
         name: 'Parameter',
         permission: keyRole.P_PARAMETER_LISTED,
         queryParams: { code: 'phone' },
+      },
+      {
+        name: 'Team',
+        permission: keyRole.P_USER_TEAM_LISTED,
+      },
+      {
+        name: 'Question',
+        permission: keyRole.P_QUESTION_LISTED,
+        queryParams: { typeCode: 'TEST_IQ' },
       },
     ],
   },

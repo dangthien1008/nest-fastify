@@ -1,7 +1,6 @@
-import React, { forwardRef, useImperativeHandle, PropsWithChildren, Ref, useEffect } from 'react';
+import React, { forwardRef, useImperativeHandle, PropsWithChildren, Ref } from 'react';
 import { Modal as AntModal, Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
 
 import { Button } from '../button';
 
@@ -11,7 +10,7 @@ export const Modal = forwardRef(
       facade,
       keyState = 'isVisible',
       title,
-      widthModal = 9999,
+      widthModal = 800,
       onOk,
       firstChange = true,
       textSubmit,
@@ -19,12 +18,10 @@ export const Modal = forwardRef(
       className = '',
       footerCustom,
       children,
-      name = 'create',
     }: Type,
-    ref: Ref<{ handleCancel: () => void }>,
+    ref: Ref<{ handleCancel: () => any }>,
   ) => {
     useImperativeHandle(ref, () => ({ handleCancel }));
-    const [searchParams, setSearchParams] = useSearchParams();
     const { data, isLoading, ...state } = facade;
     const { t } = useTranslation();
     const handleCancel = () => facade.set({ [keyState]: false });
@@ -32,27 +29,6 @@ export const Modal = forwardRef(
       if (onOk) onOk();
       else handleCancel();
     };
-
-    useEffect(() => {
-      if (searchParams.get('modal') === 'create') facade.set({ [keyState]: true, isLoading: false });
-      else facade.getById({ id: searchParams.get('modal') });
-    }, []);
-
-    useEffect(() => {
-      if (name) {
-        if (facade[keyState] && !searchParams.has('modal')) {
-          setSearchParams((params) => {
-            params.set('modal', name);
-            return params;
-          });
-        } else if (searchParams.has('modal')) {
-          setSearchParams((params) => {
-            params.delete('modal');
-            return params;
-          });
-        }
-      }
-    }, [facade[keyState]]);
 
     return (
       <AntModal
@@ -103,5 +79,4 @@ type Type = PropsWithChildren<{
   textCancel?: string;
   className?: string;
   footerCustom?: (handleOk: () => Promise<void>, handleCancel: () => void) => JSX.Element[] | JSX.Element;
-  name?: string;
 }>;

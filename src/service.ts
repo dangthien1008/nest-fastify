@@ -16,3 +16,15 @@ export * from './module/user/service/address-ward.service';
 export * from './module/user/service/address.service';
 export * from './module/user/service/user.service';
 export * from './module/user/service/user-role.service';
+
+export * from './module/member/service/booking.service';
+export * from './module/member/service/dayoff.service';
+export * from './module/member/service/user-team.service';
+
+export * from './module/member/service/task.service';
+export * from './module/member/service/task-timesheet.service';
+
+export * from './module/member/service/question.service';
+export * from './module/member/service/question-test.service';
+export * from './module/member/service/task-work.service';
+export * from './module/member/service/task-sub.service';

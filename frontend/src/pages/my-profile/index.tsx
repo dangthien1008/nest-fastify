@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { Form as AntForm, Tabs } from 'antd';
@@ -13,7 +13,8 @@ import { EFormRuleType, EFormType, ETableFilterType } from '@models';
 import dayjs from 'dayjs';
 
 const Page = () => {
-  const { user, isLoading, profile, status, putProfile, data, formatDate } = GlobalFacade();
+  const { user, isLoading, profile, status, putProfile, set, data, formatDate } = GlobalFacade();
+  console.log('data',data)
   useEffect(() => {
     profile();
     renderTitleBreadcrumbs(t('pages.MyProfile'), []);
@@ -28,9 +29,9 @@ const Page = () => {
 
   const [searchParams] = useSearchParams();
   const tab = searchParams.get('tab');
-  const activeKey = useRef<string>(tab || '1');
+  const [activeKey, setActiveKey] = useState<string>(tab || '1');
   useEffect(() => {
-    if (tab) activeKey.current = tab;
+    if (tab) setActiveKey(tab);
     const navList = document.querySelector<HTMLElement>('.ant-tabs-nav-list')!;
     const mediaQuery = window.matchMedia('(max-width: 375px)');
 
@@ -40,7 +41,7 @@ const Page = () => {
 
   const navigate = useNavigate();
   const onChangeTab = (key: string) => {
-    activeKey.current = key;
+    setActiveKey(key);
     navigate(`/${lang}${routerLinks('MyProfile')}?tab=${key}`);
   };
 
@@ -87,7 +88,7 @@ const Page = () => {
         <div className="flex-1 lg:rounded-xl w-auto">
           <Tabs
             onTabClick={(key: string) => onChangeTab(key)}
-            activeKey={activeKey.current}
+            activeKey={activeKey}
             size="large"
             className="profile"
             items={[
@@ -141,7 +142,7 @@ const Page = () => {
                           name: 'positionCode',
                           formItem: {
                             col: 6,
-                            type: EFormType.selectTable,
+                            type: EFormType.select,
                             rules: [{ type: EFormRuleType.required }],
                             get: {
                               facade: CodeFacade,
@@ -155,35 +156,35 @@ const Page = () => {
                                 value: item.code,
                               }),
                               data: () => data?.position,
-                              column: [
-                                {
-                                  title: 'titles.Code',
-                                  name: 'code',
-                                  tableItem: {
-                                    width: 100,
-                                    filter: { type: ETableFilterType.search },
-                                    sorter: true,
-                                  },
-                                },
-                                {
-                                  title: 'routes.admin.Code.Name',
-                                  name: 'name',
-                                  tableItem: {
-                                    filter: { type: ETableFilterType.search },
-                                    sorter: true,
-                                  },
-                                },
-                                {
-                                  title: 'Created',
-                                  name: 'createdAt',
-                                  tableItem: {
-                                    width: 120,
-                                    filter: { type: ETableFilterType.date },
-                                    sorter: true,
-                                    render: (text) => dayjs(text).format(formatDate),
-                                  },
-                                },
-                              ],
+                              // column: [
+                              //   {
+                              //     title: 'titles.Code',
+                              //     name: 'code',
+                              //     tableItem: {
+                              //       width: 100,
+                              //       filter: { type: ETableFilterType.search },
+                              //       sorter: true,
+                              //     },
+                              //   },
+                              //   {
+                              //     title: 'routes.admin.Code.Name',
+                              //     name: 'name',
+                              //     tableItem: {
+                              //       filter: { type: ETableFilterType.search },
+                              //       sorter: true,
+                              //     },
+                              //   },
+                              //   {
+                              //     title: 'Created',
+                              //     name: 'createdAt',
+                              //     tableItem: {
+                              //       width: 120,
+                              //       filter: { type: ETableFilterType.date },
+                              //       sorter: true,
+                              //       render: (text) => dayjs(text).format(formatDate),
+                              //     },
+                              //   },
+                              // ],
                             },
                           },
                         },

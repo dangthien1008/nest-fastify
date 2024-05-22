@@ -98,10 +98,16 @@ export class CreateUserRequestDto extends PickType(User, [
   'avatar',
   'dateLeave',
   'roleCode',
+  'managerId',
+  'teams',
 ] as const) {
   @MinLength(6)
   @ApiProperty({ example: Example.password, description: '' })
   retypedPassword: string;
+
+  @ApiProperty({ example: [faker.string.uuid()], description: '' })
+  @IsOptional()
+  teamsId?: string[];
 }
 
 export class UpdateUserRequestDto extends PickType(User, [
@@ -115,7 +121,15 @@ export class UpdateUserRequestDto extends PickType(User, [
   'avatar',
   'dateLeave',
   'roleCode',
-] as const) {}
+  'managerId',
+  'teams',
+  'dateOff',
+  'isDisabled',
+] as const) {
+  @ApiProperty({ example: [faker.string.uuid()], description: '' })
+  @IsOptional()
+  teamsId?: string[];
+}
 
 export class ListUserResponseDto extends PartialType(PaginationResponsesDto) {
   readonly data: User[];

@@ -22,17 +22,10 @@ export enum EStatusState {
   deletePending = 'delete.pending',
   deleteFulfilled = 'delete.fulfilled',
   deleteRejected = 'delete.rejected',
-}
-
-export enum ETypeChart {
-  pie = 'pie',
-  ring = 'ring',
-  bubble = 'bubble',
-  line = 'line',
-  bar = 'bar',
-  stackedBar = 'stacked-bar',
-  lineBar = 'line-bar',
-  area = 'area',
-  stackedArea = 'stacked-area',
-  scatter = 'scatter',
+  putStatusPending = 'putStatus.pending',
+  putStatusFulfilled = 'putStatus.fulfilled',
+  putStatusRejected = 'putStatus.rejected',
+  putCheckinPending = 'putCheckin.pending',
+  putCheckinFulfilled = 'putCheckin.fulfilled',
+  putCheckinRejected = 'putCheckin.rejected',
 }

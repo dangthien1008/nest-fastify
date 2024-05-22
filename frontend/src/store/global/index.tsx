@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import viVN from 'antd/lib/locale/vi_VN';
 import enUS from 'antd/lib/locale/en_US';
 import dayjs from 'dayjs';
@@ -6,7 +6,7 @@ import i18n from 'i18next';
 
 import { API, keyRefreshToken, keyToken, keyUser, lang, routerLinks } from '@utils';
 import { Message } from '@core/message';
-import { useAppDispatch, useTypedSelector, UserRole, Code } from '@store';
+import { useAppDispatch, useTypedSelector, UserRole, Code, UserTeam } from '@store';
 import { CommonEntity } from '@models';
 
 const name = 'Auth';
@@ -70,6 +70,11 @@ interface ResetPassword {
   email?: string;
   otp?: string;
 }
+interface Breadcrumb {
+  title: string;
+  link: string;
+}
+
 export class User extends CommonEntity {
   constructor(
     public name?: string,
@@ -79,11 +84,20 @@ export class User extends CommonEntity {
     public phoneNumber?: string,
     public dob?: string,
     public description?: string,
-    public positionCode?: string,
-    public position?: Code,
-    public retypedPassword?: string,
     public roleCode?: string,
     public role?: UserRole,
+    public managers?: UserTeam[],
+    public teams?: UserTeam[],
+    public teamsId?: string[],
+    public managerId?: string,
+    public manager?: User,
+    public members?: User[],
+    public positionCode?: string,
+    public position?: Code,
+    public startDate?: Date,
+    public dateLeave?: number,
+    public dateOff?: number,
+    public retypedPassword?: string,
     public createdAt?: string,
     public updatedAt?: string,
   ) {
@@ -126,14 +140,16 @@ const initialState: State = {
   isLoading: false,
   isVisible: false,
   status: EStatusGlobal.idle,
+  title: '',
   pathname: '',
+  breadcrumbs: [],
   ...checkLanguage(lang),
 };
 export const globalSlice = createSlice({
   name: action.name,
   initialState,
   reducers: {
-    setLanguage: (state, action) => {
+    setLanguage: (state: State, action: PayloadAction<string>) => {
       if (action.payload !== state.language) {
         const { language, formatDate, locale } = checkLanguage(action.payload);
         i18n.changeLanguage(language);
@@ -148,7 +164,7 @@ export const globalSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(action.set.fulfilled, (state, action) => {
+      .addCase(action.set.fulfilled, (state, action: PayloadAction<State>) => {
         let key: keyof State;
         for (key in action.payload) {
           state[key] = action.payload[key];
@@ -168,7 +184,11 @@ export const globalSlice = createSlice({
         state.status = EStatusGlobal.logoutFulfilled;
       })
 
-      .addCase(action.profile.fulfilled, (state, action) => {
+      .addCase(action.profile.pending, (state: State) => {
+        state.isLoading = true;
+        state.status = EStatusGlobal.profilePending;
+      })
+      .addCase(action.profile.fulfilled, (state: State, action: PayloadAction<User>) => {
         if (action.payload) {
           state.user = action.payload;
           state.data = action.payload;
@@ -177,17 +197,17 @@ export const globalSlice = createSlice({
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.profile.rejected, (state) => {
+      .addCase(action.profile.rejected, (state: State) => {
         state.status = EStatusGlobal.profileRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.putProfile.pending, (state, action) => {
+      .addCase(action.putProfile.pending, (state: State, action) => {
         state.data = { ...state.data, ...action.meta.arg };
         state.isLoading = true;
         state.status = EStatusGlobal.putProfilePending;
       })
-      .addCase(action.putProfile.fulfilled, (state, action) => {
+      .addCase(action.putProfile.fulfilled, (state: State, action: PayloadAction<User>) => {
         if (action.payload) {
           localStorage.setItem(keyUser, JSON.stringify(action.payload));
           state.user = action.payload;
@@ -195,17 +215,27 @@ export const globalSlice = createSlice({
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.putProfile.rejected, (state) => {
+      .addCase(action.putProfile.rejected, (state: State) => {
         state.status = EStatusGlobal.putProfileRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.login.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.loginPending;
-      })
-      .addCase(action.login.fulfilled, (state, action) => {
+      .addCase(
+        action.login.pending,
+        (
+          state: State,
+          action: PayloadAction<
+            undefined,
+            string,
+            { arg: { password?: string; email?: string }; requestId: string; requestStatus: 'pending' }
+          >,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.loginPending;
+        },
+      )
+      .addCase(action.login.fulfilled, (state: State, action: PayloadAction<User>) => {
         if (action.payload) {
           localStorage.setItem(keyUser, JSON.stringify(action.payload));
           state.user = action.payload;
@@ -214,56 +244,82 @@ export const globalSlice = createSlice({
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.login.rejected, (state) => {
+      .addCase(action.login.rejected, (state: State) => {
         state.status = EStatusGlobal.loginRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.forgottenPassword.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.forgottenPasswordPending;
-      })
-      .addCase(action.forgottenPassword.fulfilled, (state, action) => {
+      .addCase(
+        action.forgottenPassword.pending,
+        (
+          state: State,
+          action: PayloadAction<
+            undefined,
+            string,
+            { arg: { email?: string }; requestId: string; requestStatus: 'pending' }
+          >,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.forgottenPasswordPending;
+        },
+      )
+      .addCase(action.forgottenPassword.fulfilled, (state: State, action: PayloadAction<boolean>) => {
         if (action.payload) {
           state.status = EStatusGlobal.forgottenPasswordFulfilled;
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.forgottenPassword.rejected, (state) => {
+      .addCase(action.forgottenPassword.rejected, (state: State) => {
         state.status = EStatusGlobal.forgottenPasswordRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.otpConfirmation.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.otpConfirmationPending;
-      })
-      .addCase(action.otpConfirmation.fulfilled, (state, action) => {
+      .addCase(
+        action.otpConfirmation.pending,
+        (
+          state: State,
+          action: PayloadAction<
+            undefined,
+            string,
+            { arg: { email?: string; otp?: string }; requestId: string; requestStatus: 'pending' }
+          >,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.otpConfirmationPending;
+        },
+      )
+      .addCase(action.otpConfirmation.fulfilled, (state: State, action: PayloadAction<boolean>) => {
         if (action.payload) {
           state.status = EStatusGlobal.otpConfirmationFulfilled;
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.otpConfirmation.rejected, (state) => {
+      .addCase(action.otpConfirmation.rejected, (state: State) => {
         state.status = EStatusGlobal.otpConfirmationRejected;
         state.isLoading = false;
       })
 
-      .addCase(action.resetPassword.pending, (state, action) => {
-        state.data = action.meta.arg;
-        state.isLoading = true;
-        state.status = EStatusGlobal.resetPasswordPending;
-      })
-      .addCase(action.resetPassword.fulfilled, (state, action) => {
+      .addCase(
+        action.resetPassword.pending,
+        (
+          state: State,
+          action: PayloadAction<undefined, string, { arg: ResetPassword; requestId: string; requestStatus: 'pending' }>,
+        ) => {
+          state.data = action.meta.arg;
+          state.isLoading = true;
+          state.status = EStatusGlobal.resetPasswordPending;
+        },
+      )
+      .addCase(action.resetPassword.fulfilled, (state: State, action: PayloadAction<boolean>) => {
         if (action.payload) {
           state.data = {};
           state.status = EStatusGlobal.resetPasswordFulfilled;
         } else state.status = EStatusGlobal.idle;
         state.isLoading = false;
       })
-      .addCase(action.resetPassword.rejected, (state) => {
+      .addCase(action.resetPassword.rejected, (state: State) => {
         state.status = EStatusGlobal.resetPasswordRejected;
         state.isLoading = false;
       });
@@ -278,9 +334,12 @@ interface State {
   isLoading?: boolean;
   isVisible?: boolean;
   status?: EStatusGlobal;
+  title?: string;
+  titleOption?: Record<string, string | undefined>;
   pathname?: string;
   formatDate?: string;
   language?: string;
+  breadcrumbs?: Breadcrumb[];
   locale?: typeof viVN | typeof enUS;
 }
 export const GlobalFacade = () => {

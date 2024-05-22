@@ -8,7 +8,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 
 import { AppController } from '@controller';
 import { appConfig, DbCustomLogger, loggerOptions } from '@config';
-import { NotificationModule, SchedulerModule, CoreModule, UserModule } from '@module';
+import { NotificationModule, SchedulerModule, CoreModule, UserModule, MemberModule } from '@module';
 import { NamingStrategy } from '@shared';
 
 @Module({
@@ -58,6 +58,7 @@ import { NamingStrategy } from '@shared';
       }),
       isGlobal: true,
     }),
+    MemberModule,
   ],
 })
 export class AppModule {}

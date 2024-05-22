@@ -22,6 +22,13 @@ export * from './data/type';
 export * from './parameter';
 export * from './post';
 export * from './post/type';
+export * from './user/team';
+export * from './dayoff';
+export * from './user/manager';
+export * from './booking';
+export * from './question';
+export * from './timesheet';
+export * from './task';
 import {
   globalSlice,
   userSlice,
@@ -30,9 +37,16 @@ import {
   codeTypeSlice,
   dataSlice,
   dataTypeSlice,
+  parameterSlice,
   postSlice,
   postTypeSlice,
-  parameterSlice,
+  userTeamSlice,
+  dayoffSlice,
+  managerSlice,
+  bookingSlice,
+  TimeSheetSlice,
+  questionSlice,
+  taskSlice,
 } from './';
 const rootReducer = combineReducers({
   [globalSlice.name]: globalSlice.reducer,
@@ -45,4 +59,11 @@ const rootReducer = combineReducers({
   [parameterSlice.name]: parameterSlice.reducer,
   [postSlice.name]: postSlice.reducer,
   [postTypeSlice.name]: postTypeSlice.reducer,
+  [userTeamSlice.name]: userTeamSlice.reducer,
+  [dayoffSlice.name]: dayoffSlice.reducer,
+  [managerSlice.name]: managerSlice.reducer,
+  [bookingSlice.name]: bookingSlice.reducer,
+  [TimeSheetSlice.name]: TimeSheetSlice.reducer,
+  [questionSlice.name]: questionSlice.reducer,
+  [taskSlice.name]: taskSlice.reducer,
 });

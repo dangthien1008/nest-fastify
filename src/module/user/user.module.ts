@@ -31,6 +31,8 @@ import {
   FileRepository,
   UserRepository,
   UserRoleRepository,
+  DayoffRepository,
+  UserTeamRepository,
 } from '@repository';
 
 import { AccessTokenStrategy, RefreshTokenStrategy } from '@shared';
@@ -77,6 +79,8 @@ import { AccessTokenStrategy, RefreshTokenStrategy } from '@shared';
     AddressWardService,
     AddressRepository,
     AddressService,
+    UserTeamRepository,
+    DayoffRepository,
   ],
   exports: [
     AuthService,

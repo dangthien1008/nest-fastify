@@ -1,4 +1,15 @@
-import { AfterLoad, BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { faker } from '@faker-js/faker';
@@ -9,20 +20,22 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
 import * as argon2 from 'argon2';
 
-import { UserRole, Code, Address } from '@model';
-import { Example, OnlyUpdateGroup, Base, setImage } from '@shared';
+import { UserRole, Code, Address, Booking, UserTeam, QuestionTest, Task } from '@model';
+import { Example, MaxGroup, OnlyUpdateGroup, Base, setImage } from '@shared';
+import { TaskTimesheet } from '../../member/model/task-timesheet.model';
 
 @Entity({ schema: 'user' })
 export class User extends Base {
   @Column()
   @ApiProperty({ example: faker.person.fullName(), description: '' })
   @IsString()
-  name: string;
+  name?: string;
 
   @Column({ nullable: true })
   @ApiProperty({ example: faker.image.url(), description: '' })
@@ -76,19 +89,19 @@ export class User extends Base {
   @IsString()
   @MinLength(8)
   @MaxLength(12)
-  phoneNumber: string;
+  phoneNumber?: string;
 
   @Column()
   @ApiProperty({ example: faker.date.birthdate(), description: '' })
   @IsDateString()
-  dob: Date;
+  dob?: Date;
 
   @Column({ nullable: true })
   @Expose()
   @ApiProperty({ example: faker.lorem.paragraph(), description: '' })
   @IsString()
   @IsOptional()
-  description: string;
+  description?: string;
 
   @Column({ nullable: true })
   @Expose()
@@ -127,9 +140,56 @@ export class User extends Base {
   @Expose()
   @ApiProperty({ example: faker.number.int({ min: 0.5, max: 12 }), description: '' })
   @IsDecimal()
-  readonly dateOff: number;
+  dateOff?: number;
 
   @OneToMany(() => Address, (address) => address.user)
   @Type(() => Address)
   readonly address?: Address[];
+
+  @OneToMany(() => Booking, (booking) => booking.user)
+  @Type(() => Booking)
+  readonly bookingRoom?: Booking[];
+
+  @OneToMany(() => UserTeam, (team) => team.manager)
+  @Type(() => UserTeam)
+  readonly managers?: UserTeam[];
+
+  @ManyToMany(() => UserTeam, (team) => team.users, { eager: true })
+  @Type(() => UserTeam)
+  @IsOptional()
+  @JoinTable()
+  teams?: UserTeam[];
+
+  @Column({ nullable: true })
+  @Expose({ groups: [MaxGroup] })
+  @IsOptional()
+  @IsUUID()
+  managerId?: string;
+
+  @ManyToOne(() => User, (user) => user.members, { eager: true })
+  @Type(() => User)
+  @JoinColumn()
+  readonly manager?: User;
+
+  @OneToMany(() => User, (user) => user.manager)
+  @Type(() => User)
+  readonly members?: User[];
+
+  @OneToMany(() => QuestionTest, (data) => data.userId)
+  @Type(() => QuestionTest)
+  readonly tests?: QuestionTest[];
+
+  @OneToMany(() => TaskTimesheet, (data) => data.userId)
+  @Type(() => TaskTimesheet)
+  readonly timesheet?: TaskTimesheet[];
+
+  @OneToMany(() => Task, (data) => data.manager)
+  @Type(() => Task)
+  readonly task?: Task[];
+
+  @ManyToMany(() => Task, (team) => team.assignees, { eager: true })
+  @Type(() => Task)
+  @IsOptional()
+  @JoinTable()
+  tasksAssignees?: Task[];
 }

@@ -16,3 +16,14 @@ export * from './module/user/controller/address-ward.controller';
 export * from './module/user/controller/address.controller';
 export * from './module/user/controller/user.controller';
 export * from './module/user/controller/user-role.controller';
+
+export * from './module/member/controller/booking.controller';
+export * from './module/member/controller/dayoff.controller';
+export * from './module/member/controller/user-team.controller';
+
+export * from './module/member/controller/task.controller';
+export * from './module/member/controller/task-timesheet.controller';
+
+export * from './module/member/controller/question.controller';
+export * from './module/member/controller/question-test.controller';
+export * from './module/member/controller/task-sub.controller';
